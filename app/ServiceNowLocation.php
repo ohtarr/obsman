@@ -7,11 +7,11 @@ namespace App;
 use ohtarr\ServiceNowModel;
 use GuzzleHttp\Client as GuzzleHttpClient;
 
-class ServiceNowExample extends ServiceNowModel
+class ServiceNowLocation extends ServiceNowModel
 {
 	protected $guarded = [];
 
-	public $table = "example_table";
+	public $table = "cmn_location";
 
     public function __construct(array $attributes = [])
     {

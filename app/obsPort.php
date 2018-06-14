@@ -23,7 +23,7 @@ class obsPort extends Model
 		return obsAlert::where('device_id',$this->device_id)->where('entity_type','port')->where('entity_id',$this->port_id)->get();
 	}
 
-	public function pollingEnable()
+	public function enablePolling()
 	{
 		$this->disabled = 0;
 		$this->save();
@@ -36,7 +36,7 @@ class obsPort extends Model
 		return true;
 	}
 
-	public function pollingDisable()
+	public function disablePolling()
 	{
 		$this->disabled=1;
 		//$this->ignore=1;
@@ -51,7 +51,7 @@ class obsPort extends Model
         return true;
 	}
 
-	public function alertingDisable()
+	public function disableAlerting()
 	{
 		$this->ignore = 1;
 		$this->save();
@@ -64,7 +64,7 @@ class obsPort extends Model
         return true;
 	}
 
-	public function alertingEnable()
+	public function enableAlerting()
 	{
 		$this->ignore = 0;
 		$this->save();

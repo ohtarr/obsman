@@ -8,7 +8,7 @@ use App\obsAlert;
 use App\obsBgpPeer;
 use App\obsEvent;
 use App\obsGroup;
-
+use App\ServiceNowLocation;
 
 class obsDevice extends Model
 {
@@ -68,19 +68,29 @@ class obsDevice extends Model
 			return null;
 	}
 
-    public function pollingEnable()
+	public function disableAllPorts()
+	{
+		foreach($this->ports as $port)
+		{
+			$port->disablePolling();
+			$port->disableAlerting();
+			$port->resetAllAlerts();
+		}
+	}
+
+    public function enablePolling()
     {
         $this->disabled = 0;
         $this->save();
         $fresh=$this->fresh();
         if($fresh->disabled !== 0)
         {
-            throw new Exception("Port ID " . $this->port_id . " failed to enable!");
+            throw new Exception("Device ID " . $this->device_id . " failed to enable polling!");
         }
         return true;
     }
 
-    public function pollingDisable()
+    public function disablePolling()
     {
         $this->disabled=1;
         $this->ignore=1;
@@ -88,31 +98,31 @@ class obsDevice extends Model
         $fresh = $this->fresh();
         if($fresh->disabled !== 1 || $fresh->ignore !== 1)
         {
-            throw new Exception("Port ID " . $this->port_id . " failed to disable!");
+            throw new Exception("Device ID " . $this->device_id . " failed to disable polling!");
         }
         return true;
     }
 
-    public function AlertingEnable()
+    public function enableAlerting()
     {
         $this->ignore = 0;
         $this->save();
         $fresh=$this->fresh();
         if($fresh->ignore !== 0)
         {
-            throw new Exception("Port ID " . $this->port_id . " failed to unignore!");
+            throw new Exception("Device ID " . $this->device_id . " failed to enable alerting!");
         }
         return true;
     }
 
-    public function AlertingDisable()
-    {
+    public function disableAlerting()
+	{
         $this->ignore = 1;
         $this->save();
         $fresh=$this->fresh();
         if($fresh->ignore !== 1)
         {
-            throw new Exception("Port ID " . $this->port_id . " failed to ignore!");
+            throw new Exception("Device ID " . $this->device_id . " failed to disable alerting!");
         }
         return true;
     }
@@ -126,5 +136,23 @@ class obsDevice extends Model
         }
 		return true;
     }
+
+	public function initialDiscovery()
+	{
+		$cmd = "php " . env("OBSERVIUM_ROOT_FOLDER") . "discovery.php -h " . $this->device_id;
+		shell_exec($cmd);
+		$this->disableAllPorts();
+		$this->resetAllAlerts();
+	}
+
+	public function getSiteCode()
+	{
+		return strtolower(substr($this->hostname,0,8));
+	}
+
+	public function getServiceNowLocation()
+	{
+		return ServiceNowLocation::where('name','=',$this->getSiteCode())->first();
+	}
 }
 

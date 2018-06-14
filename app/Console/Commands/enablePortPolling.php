@@ -5,14 +5,14 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\obsPort;
 
-class enablePort extends Command
+class enablePortPolling extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'obsman:enablePort {id}';
+    protected $signature = 'obsman:enablePortPolling {id}';
 
     /**
      * The console command description.
@@ -40,6 +40,6 @@ class enablePort extends Command
     {
         $id = $this->argument('id');
         $port = obsPort::find($id);
-        $port->enable();
+        $port->enablePolling();
     }
 }

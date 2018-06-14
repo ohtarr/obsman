@@ -5,21 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\obsDevice;
 
-class ignoreDevice extends Command
+class disableDevicePolling extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'obsman:ignoreDevice {id}';
+    protected $signature = 'obsman:disableDevicePolling {id}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Disable Alerting of a device in Observium';
+    protected $description = 'Disable Polling of a device in Observium';
 
     /**
      * Create a new command instance.
@@ -38,12 +38,8 @@ class ignoreDevice extends Command
      */
     public function handle()
     {
-        $id = $this->argument('id');
-        $device = obsDevice::find($id);
-		try{
-	        $device->ignore();
-		} catch(Exception $e) {
-			print "Failed with exception " . $e->getMessage();
-		}
+		$id = $this->argument('id');
+		$port = obsDevice::find($id);
+		$port->disablePolling();
     }
 }

@@ -3,23 +3,23 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\obsPort;
+use App\obsDevice;
 
-class ignorePort extends Command
+class enableDeviceAlerting extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'obsman:ignorePort {id}';
+    protected $signature = 'obsman:enableDeviceAlerting {id}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Disable Alerting of a port in Observium';
+    protected $description = 'Enable Alerting for a device in Observium';
 
     /**
      * Create a new command instance.
@@ -39,7 +39,7 @@ class ignorePort extends Command
     public function handle()
     {
         $id = $this->argument('id');
-        $port = obsPort::find($id);
-        $port->ignore();
+        $device = obsDevice::find($id);
+        $device->enableAlerting();
     }
 }

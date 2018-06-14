@@ -5,21 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\obsPort;
 
-class disablePort extends Command
+class enablePortAlerting extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'obsman:disablePort {id}';
+    protected $signature = 'obsman:enablePortAlerting {id}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Disable Polling of a port in Observium';
+    protected $description = 'Enable Alerts for a port in Observium';
 
     /**
      * Create a new command instance.
@@ -38,8 +38,8 @@ class disablePort extends Command
      */
     public function handle()
     {
-		$id = $this->argument('id');
-		$port = obsPort::find($id);
-		$port->disable();
+        $id = $this->argument('id');
+        $port = obsPort::find($id);
+        $port->enableAlerting();
     }
 }

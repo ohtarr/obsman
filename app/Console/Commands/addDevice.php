@@ -41,15 +41,16 @@ class addDevice extends Command
     {
         $hostname = $this->argument('hostname');
 		$check = obsDevice::where('hostname',$hostname)->first();
-		$confirm = null;
+		$device = null;
 		if(!$check)
 		{
 			$command = 'php ' . env('OBSERVIUM_ROOT_FOLDER') ."add_device.php " . $hostname;
 			shell_exec($command);
-			$confirm = obsDevice::where('hostname',$hostname)->first();
-			if($confirm)
+			$device = obsDevice::where('hostname',$hostname)->first();
+			if($device)
 			{
-				$message = "Device ID " . $confirm->device_id . " added successfully!";
+				$device->disableAllPorts();
+				$message = "Device ID " . $device->device_id . " added successfully!";
 				print $message . "\n";
 				Log::info($message);
 			} else {
@@ -62,6 +63,6 @@ class addDevice extends Command
 			print $message . "\n";
 			throw new \Exception($message);
 		}
-		return $confirm;
+		return $device;
     }
 }

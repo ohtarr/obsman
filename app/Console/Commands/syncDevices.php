@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\managedDevice;
 use App\obsDevice;
+use GuzzleHttp\Client as GuzzleHttpClient;
 
 class syncDevices extends Command
 {
@@ -44,15 +45,38 @@ class syncDevices extends Command
     public function handle()
     {
 		//$this->addDevices();
-		$this->deleteDevices();
+		//$this->deleteDevices();
+		//$this->getManagedDevices();
+		//$this->syncPorts();
+		$this->syncCoords();
     }
 
 	public function getManagedDevices()
 	{
 		if(!$this->managedDevices)
 		{
-	        $this->managedDevices = managedDevice::all();
+	        //$this->managedDevices = managedDevice::all();
+			$this->NetmanClient = new GuzzleHttpClient([
+				'base_uri' => getenv('NETMAN_BASE_URL'),
+				//'cert' => getenv('NETMAN_CERT'),
+			]);
+			$apiRequest = $this->NetmanClient->request('GET', "reports/device-monitoring-netmon.php");
+			$RESPONSE = json_decode($apiRequest->getBody()->getContents(), true);
+			$devices = $RESPONSE['devices'];
+			//print_r($devices);
+			//$this->managedDevices = $devices;
+			foreach($devices as $item)
+			{
+					$model = new managedDevice($item);
+					//print_r($model);
+					$models[] = $model;
+			}
+			// return an eloquent collection of models
+			$model = new managedDevice();
+			$collection = $model->newCollection($models);
+			$this->managedDevices = $collection;
 		}
+		//print_r($this->managedDevices);
 		return $this->managedDevices;
 	}
 
@@ -74,11 +98,19 @@ class syncDevices extends Command
 		print "Done getting devices!\n";
 		foreach($manageddevices as $device)
 		{
-			print $device->name . "\n";
 			$obsdevice = $obsdevices->where('hostname',$device->name)->first();
 			if(!$obsdevice)
 			{
-				$this->call('obsman:addDevice', ['hostname' => $device->name]);
+				print "adding " . $device->name . "\n";
+				try
+				{
+					$this->call('obsman:addDevice', ['hostname' => $device->name]);
+				} catch(\Exception $e) {}
+				$addeddevice = obsDevice::where('hostname',$device->name)->first();
+				if($addeddevice)
+				{
+					$addeddevice->initialDiscovery();
+				}
 			}
 		}
 	}
@@ -96,4 +128,95 @@ class syncDevices extends Command
 			}
 		}
 	}
+
+	public function syncPorts()
+	{
+		print "Getting Managed Devices\n";
+		$manageddevices = $this->getManagedDevices();
+		print "Getting Obs Devices\n";
+		$obsdevices = $this->getObsDevices();
+		print "Done getting devices!\n";
+		foreach($obsdevices as $obsdevice)
+		{
+			print $obsdevice->hostname . "\n";
+			$manageddevice = $manageddevices->where('name',$obsdevice->hostname)->first();
+			if($manageddevice)
+			{
+				print $manageddevice->name . "\n";
+				foreach($obsdevice->ports as $port)
+				{
+					print $port->ifDescr . "\n";
+					$managedint = null;
+					foreach($manageddevice->interfaces as $intname => $intcfg)
+					{
+						if(strtolower($port->ifDescr) == strtolower($intname))
+						{
+							$managedint = $intcfg;
+							print "MATCHED INTERFACE: " . $intname . "\n";
+							break;
+						}
+					}
+					if($managedint)
+					{
+						if ($managedint['description']['MON'] == 1 || $managedint['description']['mon'])
+						{
+							if($port->disable != 1)
+							{
+								$port->enablePolling();
+							}
+						} else {
+							if($port->disable != 0)
+							{
+								$port->disablePolling();
+							}
+						}
+						if ($managedint['description']['ALERT'] == 1 || $managedint['description']['alert'] == 1)
+						{
+							if($port->ignore != 0)
+							{
+								$port->enableAlerting();
+							}
+						} else {
+							if($port->ignore != 1)
+							{
+								$port->disableAlerting();
+							}
+						}
+					}
+				}
+				//break;
+			}
+		}
+	}
+
+	public function syncCoords()
+	{
+		$obsdevices = $this->getObsDevices();
+		foreach($obsdevices as $obsdevice)
+		{
+			$loc = $obsdevice->loc;
+			$snowloc = $obsdevice->getServiceNowLocation();
+			if($loc && $snowloc)
+			{
+				if($snowloc->latitude >= -90 && $snowloc->latitude <= 90 && $snowloc->longitude >= -180 && $snowloc->longitude <= 180)
+				{
+					if($loc->location_lat != $snowloc->latitude)
+					{
+						$loc->location_lat = $snowloc->latitude;
+						$loc->save();
+					}
+					if($loc->location_lon != $snowloc->longitude)
+					{
+						$loc->location_lon = $snowloc->longitude;
+						$loc->save();
+					}
+				} else {
+					$loc->location_lat = "37.7463058";
+					$loc->location_lon = "-45.0000000";
+					$loc->save();
+				}
+			}
+		}
+	}
+
 }
