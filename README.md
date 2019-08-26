@@ -1,2 +1,0 @@
-# obsman
-Observium Management
