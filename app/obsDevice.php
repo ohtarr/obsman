@@ -9,6 +9,7 @@ use App\obsBgpPeer;
 use App\obsEvent;
 use App\obsGroup;
 use App\ServiceNowLocation;
+use Illuminate\Support\Facades\Log;
 
 class obsDevice extends Model
 {
@@ -139,9 +140,11 @@ class obsDevice extends Model
 
 	public function initialDiscovery()
 	{
-		$cmd = "php " . env("OBSERVIUM_ROOT_FOLDER") . "discovery.php -h " . $this->device_id;
-		shell_exec($cmd);
-		$this->disableAllPorts();
+        $this->disableAlerting();
+        $this->discover();
+        $this->poll();
+        $this->disablePolling();
+        $this->disableAllPorts();
 		$this->resetAllAlerts();
 	}
 
@@ -153,6 +156,87 @@ class obsDevice extends Model
 	public function getServiceNowLocation()
 	{
 		return ServiceNowLocation::where('name','=',$this->getSiteCode())->first();
-	}
-}
+    }
 
+    public function poll()
+	{
+        $polled1 = $this->last_polled;
+        $command = 'php ' . env('OBSERVIUM_ROOT_FOLDER') . "poller.php -h " . $this->device_id;
+        shell_exec($command);
+        $this->refresh();
+        $polled2 = $this->last_polled;
+        if($polled1 != $polled2)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public function discover()
+	{
+        $discovered1 = $this->last_discovered;
+        $command = 'php ' . env('OBSERVIUM_ROOT_FOLDER') ."discovery.php -h " . $this->device_id;
+        shell_exec($command);
+        $this->refresh();
+        $discovered2 = $this->last_discovered;
+        if($discovered1 != $discovered2)
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    public static function addDevice($hostname)
+    {
+        $exists = self::where('hostname',$hostname)->first();
+		if(!$exists)
+		{
+            $command = 'php ' . env('OBSERVIUM_ROOT_FOLDER') ."add_device.php " . $hostname;
+			shell_exec($command);
+			$device = obsDevice::where('hostname',$hostname)->first();
+			if($device)
+			{
+                $device->initialDiscovery();
+				$message = "Device ID " . $device->device_id . " added successfully!";
+				print $message . "\n";
+                Log::info($message);
+			} else {
+				$message = "Device " . $hostname . " Failed to add!";
+				print $message . "\n";
+				throw new \Exception($message);
+			}
+		} else {
+			$message = "Device " . $hostname . " Failed to Add.  Device already exists!";
+			print $message . "\n";
+			throw new \Exception($message);
+		}
+		return $device;
+    }
+
+    public static function deleteDevice($hostname)
+    {
+        $check = self::where('hostname',$hostname)->first();
+		$device = null;
+		if($check)
+		{
+            $command = 'php ' . env('OBSERVIUM_ROOT_FOLDER') ."delete_device.php " . $hostname;
+			shell_exec($command);
+			$device = obsDevice::where('hostname',$hostname)->first();
+			if($device)
+			{
+				$message = "Device ID " . $device->device_id . " failed to delete!";
+				print $message . "\n";
+				throw new \Exception($message);
+            } else {
+				$message = "Device " . $hostname . " deleted successfully!";
+				print $message . "\n";
+                Log::info($message);
+                return true;
+			}
+		} else {
+			$message = "Device " . $hostname . " Failed to delete.  Device doesn't exist!";
+			print $message . "\n";
+			throw new \Exception($message);
+		}
+    }
+}

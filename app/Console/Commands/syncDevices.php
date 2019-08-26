@@ -44,11 +44,12 @@ class syncDevices extends Command
      */
     public function handle()
     {
-		//$this->addDevices();
+		$this->addDevices();
 		//$this->deleteDevices();
-		//$this->getManagedDevices();
+		//print_r($this->getObsDevices());
+		//print_r($this->getManagedDevices());
 		//$this->syncPorts();
-		$this->syncCoords();
+		//$this->syncCoords();
     }
 
 	public function getManagedDevices()
@@ -104,12 +105,12 @@ class syncDevices extends Command
 				print "adding " . $device->name . "\n";
 				try
 				{
-					$this->call('obsman:addDevice', ['hostname' => $device->name]);
+					obsDevice::addDevice($device->name);
 				} catch(\Exception $e) {}
 				$addeddevice = obsDevice::where('hostname',$device->name)->first();
 				if($addeddevice)
 				{
-					$addeddevice->initialDiscovery();
+					print "Added " . $device->name . " successfully!\n";
 				}
 			}
 		}
@@ -124,7 +125,7 @@ class syncDevices extends Command
 			$manageddevice = $manageddevices->where('name',$obsdevice->hostname)->first();
 			if(!$manageddevice)
 			{
-				$this->call('obsman:deleteDevice', ['hostname' => $obsdevice->hostname]);
+				obsDevice::deleteDevice($obsdevice->hostname);
 			}
 		}
 	}
@@ -140,7 +141,7 @@ class syncDevices extends Command
 		{
 			print $obsdevice->hostname . "\n";
 			$manageddevice = $manageddevices->where('name',$obsdevice->hostname)->first();
-			if($manageddevice)
+			if(isset($manageddevice->interfaces))
 			{
 				print $manageddevice->name . "\n";
 				foreach($obsdevice->ports as $port)
@@ -158,33 +159,55 @@ class syncDevices extends Command
 					}
 					if($managedint)
 					{
-						if ($managedint['description']['MON'] == 1 || $managedint['description']['mon'])
+						$MON = 0;
+						$ALERT = 0;
+						if(isset($managedint['description']['MON']))
 						{
-							if($port->disable != 1)
+							if($managedint['description']['MON'] == 1)
 							{
-								$port->enablePolling();
-							}
-						} else {
-							if($port->disable != 0)
-							{
-								$port->disablePolling();
+								$MON = 1;
 							}
 						}
-						if ($managedint['description']['ALERT'] == 1 || $managedint['description']['alert'] == 1)
+						if(isset($managedint['description']['mon']))
 						{
-							if($port->ignore != 0)
+							if($managedint['description']['mon'] == 1)
 							{
-								$port->enableAlerting();
+								$MON = 1;
 							}
+						}
+						if($MON == 1)
+						{
+							if(isset($managedint['description']['ALERT']))
+							{
+								if($managedint['description']['ALERT'] == 1)
+								{
+									$ALERT = 1;
+								}
+							}
+							if(isset($managedint['description']['alert']))
+							{
+								if($managedint['description']['alert'] == 1)
+								{
+									$ALERT = 1;
+								}
+							}
+						}
+
+						if($MON == 1)
+						{
+							$port->enablePolling();
 						} else {
-							if($port->ignore != 1)
-							{
-								$port->disableAlerting();
-							}
+							$port->disablePolling();
+						}
+
+						if($ALERT == 1)
+						{
+							$port->enableAlerting();
+						} else {
+							$port->disableAlerting();
 						}
 					}
 				}
-				//break;
 			}
 		}
 	}
