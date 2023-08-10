@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\obsPort;
-use App\obsAlert;
-use App\obsBgpPeer;
-use App\obsEvent;
-use App\obsGroup;
-use App\ServiceNowLocation;
+use App\Models\obsPort;
+use App\Models\obsAlert;
+use App\Models\obsBgpPeer;
+use App\Models\obsEvent;
+use App\Models\obsGroup;
+use App\Models\ServiceNowLocation;
 use Illuminate\Support\Facades\Log;
 
 class obsDevice extends Model
@@ -20,22 +20,22 @@ class obsDevice extends Model
 
 	public function ports()
 	{
-		return $this->hasMany('App\obsPort', 'device_id', 'device_id');
+		return $this->hasMany(obsPort::class, 'device_id', 'device_id');
 	}
 
     public function alerts()
     {
-        return $this->hasMany('App\obsAlert', 'device_id', 'device_id');
+        return $this->hasMany(obsAlert::class, 'device_id', 'device_id');
     }
 
     public function bgpPeers()
     {
-        return $this->hasMany('App\obsBgpPeer', 'device_id', 'device_id');
+        return $this->hasMany(obsBgpPeer::class, 'device_id', 'device_id');
     }
 
     public function events()
     {
-        return $this->hasMany('App\obsEvent', 'device_id', 'device_id');
+        return $this->hasMany(obsEvent::class, 'device_id', 'device_id');
     }
 
     public function getActiveAlerts()
@@ -46,12 +46,12 @@ class obsDevice extends Model
 
     public function groups()
     {
-        return $this->belongsToMany('App\obsGroup', 'group_table', 'device_id', 'group_id');
+        return $this->belongsToMany(obsGroup::class, 'group_table', 'device_id', 'group_id');
     }
 
     public function loc()
     {
-        return $this->belongsTo('App\obsDeviceLocation', 'device_id', 'device_id');
+        return $this->belongsTo(obsDeviceLocation::class, 'device_id', 'device_id');
     }
 
 	public function getPort($portname)

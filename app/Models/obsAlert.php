@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\obsDevice;
+use App\Models\obsAlertTest;
 
 class obsAlert extends Model
 {
@@ -15,12 +17,12 @@ class obsAlert extends Model
 
     public function device()
     {
-		return $this->belongsTo('App\obsDevice', 'device_id', 'device_id');
+		return $this->belongsTo(obsDevice::class, 'device_id', 'device_id');
     }
 
 	public function alertTest()
 	{
-		return $this->belongsTo('App\obsAlertTest', 'alert_test_id', 'alert_test_id');
+		return $this->belongsTo(obsAlertTest::class, 'alert_test_id', 'alert_test_id');
 	}
 
 	public function alertContacts()

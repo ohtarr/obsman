@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\obsDevice;
+use App\Models\obsBgpPeer;
+use App\Models\obsPort;
 
 class obsEvent extends Model
 {
@@ -13,7 +16,7 @@ class obsEvent extends Model
 
     public function device()
     {
-		return $this->belongsTo('App\obsDevice', 'device_id', 'device_id');
+		return $this->belongsTo(obsDevice::class, 'device_id', 'device_id');
     }
 
 	public function entity()

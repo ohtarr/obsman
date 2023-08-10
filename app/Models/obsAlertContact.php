@@ -12,6 +12,6 @@ class obsAlertContact extends Model
 
 	public function AlertTests()
 	{
-		return $this->belongsToMany('App\obsAlertTest', 'alert_contacts_assoc', 'contact_id', 'alert_checker_id');
+		return $this->belongsToMany('App\Models\obsAlertTest', 'alert_contacts_assoc', 'contact_id', 'alert_checker_id');
 	}
 }

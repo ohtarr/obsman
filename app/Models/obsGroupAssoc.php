@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\obsGroup;
 
 class obsGroupAssoc extends Model
 {
@@ -13,7 +14,7 @@ class obsGroupAssoc extends Model
 
     public function group()
     {
-        return $this->belongsTo('App\obsGroup', 'group_id', 'group_id');
+        return $this->belongsTo(obsGroup::class, 'group_id', 'group_id');
     }
 
 }

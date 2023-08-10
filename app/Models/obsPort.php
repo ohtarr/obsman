@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\obsDevice;
-use App\obsAlert;
+use App\Models\obsDevice;
+use App\Models\obsAlert;
 
 class obsPort extends Model
 {
@@ -16,7 +16,7 @@ class obsPort extends Model
 
 	public function device()
 	{
-		return $this->belongsTo('App\obsDevice', 'device_id', 'device_id');
+		return $this->belongsTo('App\Models\obsDevice', 'device_id', 'device_id');
 	}
 
 	public function getAlerts()

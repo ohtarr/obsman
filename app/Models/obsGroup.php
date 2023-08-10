@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\obsGroupAssoc;
+use App\Models\obsGroupAssoc;
+use App\Models\obsDevice;
 
 class obsGroup extends Model
 {
@@ -15,12 +16,12 @@ class obsGroup extends Model
 
     public function assocs()
     {
-        return $this->hasMany('App\obsGroupAssoc', 'group_id', 'group_id');
+        return $this->hasMany(obsGroupAssoc::class, 'group_id', 'group_id');
     }
 
     public function devices()
     {
-        return $this->belongsToMany('App\obsDevice', 'group_table', 'group_id', 'device_id');
+        return $this->belongsToMany(obsDevice::class, 'group_table', 'group_id', 'device_id');
     }
 
 	public static function addSiteGroup($sitecode)

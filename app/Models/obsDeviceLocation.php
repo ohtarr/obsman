@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\obsDevice;
 
 class obsDeviceLocation extends Model
 {
@@ -13,12 +14,12 @@ class obsDeviceLocation extends Model
 
     public function device()
     {
-        return $this->belongsTo('App\obsDevice', 'device_id', 'device_id');
+        return $this->belongsTo(obsDevice::class, 'device_id', 'device_id');
     }
 
 	public function devices()
 	{
-		$locs = obsDeviceLocation::where('location',$this->location)->get();
+		$locs = self::where('location',$this->location)->get();
 		foreach($locs as $loc)
 		{
 			$devices[] = $loc->device;

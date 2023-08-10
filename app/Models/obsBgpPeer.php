@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Apps\Models\obsDevice;
 
 class obsBgpPeer extends Model
 {
@@ -14,12 +15,12 @@ class obsBgpPeer extends Model
 
 	public function device()
 	{
-        return $this->belongsTo('App\obsDevice', 'device_id', 'device_id');
+        return $this->belongsTo(obsDevice::class, 'device_id', 'device_id');
 	}
 
 	public function peer()
 	{
-        return $this->belongsTo('App\obsDevice', 'peer_device_id', 'device_id');
+        return $this->belongsTo(obsDevice::class, 'peer_device_id', 'device_id');
 	}
 
 }
